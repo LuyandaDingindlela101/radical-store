@@ -1,8 +1,8 @@
 #   IMPORT THE NEEDED MODULES
 import hmac
 
-from utilities import *
-from database_connection import *
+from utilities import Utilities
+from database_connection import Database
 
 from flask_cors import CORS
 from datetime import timedelta
@@ -22,15 +22,6 @@ class User:
         self.email_address = email_address
 
 
-# class Product:
-    # def __init__(self, product_name, product_image_url, product_category, product_description, product_price):
-    #     self.product_name = product_name
-    #     self.product_image_url = product_image_url
-    #     self.product_category = product_category
-    #     self.product_description = product_description
-    #     self.product_price = product_price
-
-
 def send_email(email_address, first_name):
     email_to_send = Message('Welcome to the Radical Store.', sender='notbrucewayne71@gmail.com',
                             recipients=[email_address])
@@ -43,7 +34,7 @@ def send_email(email_address, first_name):
 
 def fetch_users():
     new_data = []
-    db_users = get_users()
+    db_users = database.get_users()
 
     for user in db_users:
         new_data.append(User(user[0], user[1], user[2], user[3], user[4], user[5], user[6]))
@@ -78,12 +69,14 @@ app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=86400)
 
 CORS(app)
 mail = Mail(app)
+utilities = Utilities()
+database = Database("radical_store.db")
 jwt = JWT(app, authenticate, identity)
 
 #   CREATE THE USER TABLE IF IT DOESNT EXIST
-create_user_table()
+database.create_user_table()
 #   CREATE THE PRODUCT TABLE IF IT DOESNT EXIST
-create_product_table()
+database.create_product_table()
 #   GET ALL THE USERS IN THE DATABASE
 users = fetch_users()
 
@@ -115,10 +108,11 @@ def user_registration():
             password = request.form['password']
             email_address = request.form['email_address']
 
-            if not_empty(first_name) and not_empty(last_name) and not_empty(username) and not_empty(
-                    address) and not_empty(password) and not_empty(email_address) and is_email(email_address):
+            if utilities.not_empty(first_name) and utilities.not_empty(last_name) and utilities.not_empty(username) and \
+                    utilities.not_empty(address) and utilities.not_empty(password) and utilities.not_empty(email_address) and \
+                    utilities.is_email(email_address):
                 #   CALL THE get_user FUNCTION TO GET THE user
-                user = get_user(username, password)
+                user = database.get_user(username, password)
 
                 #   IF user EXISTS, THEN LOG THE IN
                 if user:
@@ -127,11 +121,11 @@ def user_registration():
                     response["email_status"] = "email not sent"
                 else:
                     #   CALL THE register_user FUNCTION TO REGISTER THE USER
-                    register_user(first_name, last_name, username, address, password, email_address)
+                    database.register_user(first_name, last_name, username, address, password, email_address)
                     #   SEND THE USER AN EMAIL INFORMING THEM ABOUT THEIR REGISTRATION
                     send_email(email_address, first_name)
                     #   GET THE NEWLY REGISTERED USER
-                    user = get_user(username, password)
+                    user = database.get_user(username, password)
                     #   UPDATE THE response
                     response["status_code"] = 201
                     response["current_user"] = user
@@ -162,9 +156,9 @@ def login():
             username = request.form['username']
             password = request.form['password']
 
-            if not_empty(username) and not_empty(password):
+            if utilities.not_empty(username) and utilities.not_empty(password):
                 #   CALL THE get_user FUNCTION TO GET THE user
-                user = get_user(username, password)
+                user = database.get_user(username, password)
 
                 #   IF user EXISTS, THEN LOG THE IN
                 if user:
@@ -207,7 +201,7 @@ def add_product():
             review = request.form['review']
 
             #   CALL THE save_product FUNCTION TO SAVE THE PRODUCT TO THE DATABASE
-            save_product(name, description, price, category, review)
+            database.save_product(name, description, price, category, review)
 
             #   UPDATE THE response
             response["status_code"] = 201
@@ -230,7 +224,7 @@ def show_products():
     #   MAKE SURE THE request.method IS A GET
     if request.method == "GET":
         #   GET ALL THE PRODUCTS FROM THE DATABASE
-        products = get_all_products()
+        products = database.get_all_products()
 
         if len(products) > 0:
             #   UPDATE THE response
@@ -257,9 +251,9 @@ def view_product(product_id):
     #   MAKE SURE THE request.method IS A GET
     if request.method == "GET":
         #   GET A PRODUCT FROM THE DATABASE
-        product = get_one_product(product_id)
+        product = database.get_one_product(product_id)
         print(type(product))
-        if not_empty(product):
+        if utilities.not_empty(product):
             #   UPDATE THE response
             response["status_code"] = 201
             response["product"] = product
@@ -294,7 +288,7 @@ def edit_product(product_id):
             updated_data["name"] = incoming_data.get("name")
 
             #   CALL THE edit_product AND PASS IN THE COLUMN TO BE UPDATED, THE NEW DATA AND THE product_id
-            update_product("name", updated_data["name"], product_id)
+            database.update_product("name", updated_data["name"], product_id)
 
             #   UPDATE THE response
             response['status_code'] = 201
@@ -306,7 +300,7 @@ def edit_product(product_id):
             updated_data['description'] = incoming_data.get('description')
 
             #   CALL THE edit_product AND PASS IN THE COLUMN TO BE UPDATED, THE NEW DATA AND THE product_id
-            update_product("description", updated_data['description'], product_id)
+            database.update_product("description", updated_data['description'], product_id)
 
             #   UPDATE THE response
             response["status_code"] = 201
@@ -318,7 +312,7 @@ def edit_product(product_id):
             updated_data['price'] = incoming_data.get('price')
 
             #   CALL THE edit_product AND PASS IN THE COLUMN TO BE UPDATED, THE NEW DATA AND THE product_id
-            update_product("price", updated_data['price'], product_id)
+            database.update_product("price", updated_data['price'], product_id)
 
             #   UPDATE THE response
             response["status_code"] = 201
@@ -330,7 +324,7 @@ def edit_product(product_id):
             updated_data['category'] = incoming_data.get('category')
 
             #   CALL THE edit_product AND PASS IN THE COLUMN TO BE UPDATED, THE NEW DATA AND THE product_id
-            update_product("category", updated_data['category'], product_id)
+            database.update_product("category", updated_data['category'], product_id)
 
             #   UPDATE THE response
             response["status_code"] = 201
@@ -342,7 +336,7 @@ def edit_product(product_id):
             updated_data['review'] = incoming_data.get('review')
 
             #   CALL THE edit_product AND PASS IN THE COLUMN TO BE UPDATED, THE NEW DATA AND THE product_id
-            update_product("review", updated_data['review'], product_id)
+            database.update_product("review", updated_data['review'], product_id)
 
             #   UPDATE THE response
             response["status_code"] = 201
@@ -360,7 +354,7 @@ def delete_product(product_id):
     response = {}
 
     #   CALL THE delete_product AND PASS IN THE product_id
-    remove_product(product_id)
+    database.remove_product(product_id)
 
     #   UPDATE THE response
     response['status_code'] = 201

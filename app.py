@@ -1,7 +1,9 @@
 #   IMPORT THE NEEDED MODULES
 import hmac
 
+from utilities import *
 from database_connection import *
+
 from flask_cors import CORS
 from datetime import timedelta
 from flask_mail import Mail, Message
@@ -18,6 +20,15 @@ class User:
         self.last_name = last_name
         self.first_name = first_name
         self.email_address = email_address
+
+
+# class Product:
+    # def __init__(self, product_name, product_image_url, product_category, product_description, product_price):
+    #     self.product_name = product_name
+    #     self.product_image_url = product_image_url
+    #     self.product_category = product_category
+    #     self.product_description = product_description
+    #     self.product_price = product_price
 
 
 def send_email(email_address, first_name):
@@ -93,28 +104,46 @@ def user_registration():
     response = {}
 
     # WRAP IN TRY...CATCH
-    #   MAKE SURE THE request.method IS A POST
-    if request.method == "POST":
-        #   GET THE FORM DATA TO BE SAVED
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
-        username = request.form['username']
-        address = request.form['address']
-        password = request.form['password']
-        email_address = request.form['email_address']
+    try:
+        #   MAKE SURE THE request.method IS A POST
+        if request.method == "POST":
+            #   GET THE FORM DATA TO BE SAVED
+            first_name = request.form['first_name']
+            last_name = request.form['last_name']
+            username = request.form['username']
+            address = request.form['address']
+            password = request.form['password']
+            email_address = request.form['email_address']
 
-        #   CALL THE register_user FUNCTION TO REGISTER THE USER
-        register_user(first_name, last_name, username, address, password, email_address)
-        #   SEND THE USER AN EMAIL INFORMING THEM ABOUT THEIR REGISTRATION
-        send_email(email_address, first_name)
-        #   GET THE NEWLY REGISTERED USER
-        user = get_user(username, password)
+            if not_empty(first_name) and not_empty(last_name) and not_empty(username) and not_empty(
+                    address) and not_empty(password) and not_empty(email_address) and is_email(email_address):
+                #   CALL THE get_user FUNCTION TO GET THE user
+                user = get_user(username, password)
+
+                #   IF user EXISTS, THEN LOG THE IN
+                if user:
+                    response["status_code"] = 409
+                    response["message"] = "user already exists"
+                    response["email_status"] = "email not sent"
+                else:
+                    #   CALL THE register_user FUNCTION TO REGISTER THE USER
+                    register_user(first_name, last_name, username, address, password, email_address)
+                    #   SEND THE USER AN EMAIL INFORMING THEM ABOUT THEIR REGISTRATION
+                    send_email(email_address, first_name)
+                    #   GET THE NEWLY REGISTERED USER
+                    user = get_user(username, password)
+                    #   UPDATE THE response
+                    response["status_code"] = 201
+                    response["current_user"] = user
+                    response["message"] = "registration successful"
+                    response["email_status"] = "Email was successfully sent"
+    except ValueError:
         #   UPDATE THE response
-        response["status_code"] = 201
-        response["current_user"] = user
-        response["message"] = "registration successful"
-        response["email_status"] = "Email was successfully sent"
-
+        response["status_code"] = 409
+        response["current_user"] = "none"
+        response["message"] = "inputs are not valid"
+        response["email_status"] = "email not sent"
+    finally:
         #   RETURN A JSON VERSION OF THE response
         return jsonify(response)
 
@@ -128,21 +157,35 @@ def login():
     # WRAP IN TRY...CATCH
     #   MAKE SURE THE request.method IS A POST
     if request.method == "POST":
-        #   GET THE FORM DATA TO BE SAVED
-        username = request.form['username']
-        password = request.form['password']
+        try:
+            #   GET THE FORM DATA TO BE SAVED
+            username = request.form['username']
+            password = request.form['password']
 
-        #   CALL THE login_user FUNCTION TO REGISTER THE USER
-        user = get_user(username, password)
-        print(user)
+            if not_empty(username) and not_empty(password):
+                #   CALL THE get_user FUNCTION TO GET THE user
+                user = get_user(username, password)
 
-        #   UPDATE THE response
-        response["status_code"] = 201
-        response["current_user"] = user
-        response["message"] = "login successful"
-
-        #   RETURN A JSON VERSION OF THE response
-        return jsonify(response)
+                #   IF user EXISTS, THEN LOG THE IN
+                if user:
+                    #   UPDATE THE response
+                    response["status_code"] = 201
+                    response["current_user"] = user
+                    response["message"] = "login successful"
+                else:
+                    #   UPDATE THE response
+                    response["status_code"] = 409
+                    response["current_user"] = "none"
+                    response["message"] = "login unsuccessful"
+        except ValueError:
+            #   UPDATE THE response
+            response["status_code"] = 409
+            response["current_user"] = "none"
+            response["message"] = "inputs are not valid"
+            response["email_status"] = "email not sent"
+        finally:
+            #   RETURN A JSON VERSION OF THE response
+            return jsonify(response)
 
 
 #   ROUTE WILL BE USED TO ADD A NEW PRODUCT, ROUTE ONLY ACCEPTS A POST METHOD
@@ -153,25 +196,29 @@ def add_product():
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
 
-    # WRAP IN TRY...CATCH
     #   MAKE SURE THE request.method IS A POST
     if request.method == "POST":
-        #   GET THE FORM DATA TO BE SAVED
-        name = request.form['name']
-        description = request.form['description']
-        price = request.form['price']
-        category = request.form['category']
-        review = request.form['review']
+        try:
+            #   GET THE FORM DATA TO BE SAVED
+            name = request.form['name']
+            description = request.form['description']
+            price = request.form['price']
+            category = request.form['category']
+            review = request.form['review']
 
-        #   CALL THE save_product FUNCTION TO SAVE THE PRODUCT TO THE DATABASE
-        save_product(name, description, price, category, review)
+            #   CALL THE save_product FUNCTION TO SAVE THE PRODUCT TO THE DATABASE
+            save_product(name, description, price, category, review)
 
-        #   UPDATE THE response
-        response["status_code"] = 201
-        response['description'] = "Product successfully added"
-
-        #   RETURN A JSON VERSION OF THE response
-        return jsonify(response)
+            #   UPDATE THE response
+            response["status_code"] = 201
+            response['message'] = "Product successfully added"
+        except ValueError:
+            #   UPDATE THE response
+            response["status_code"] = 201
+            response['message'] = "inputs are not valid"
+        finally:
+            #   RETURN A JSON VERSION OF THE response
+            return jsonify(response)
 
 
 #   ROUTE WILL BE USED TO VIEW ALL PRODUCTS, ROUTE ONLY ACCEPTS A GET METHOD
@@ -185,10 +232,17 @@ def show_products():
         #   GET ALL THE PRODUCTS FROM THE DATABASE
         products = get_all_products()
 
-        #   UPDATE THE response
-        response['status_code'] = 200
-        response['products'] = products
-    # render_template('index.html')
+        if len(products) > 0:
+            #   UPDATE THE response
+            response['status_code'] = 201
+            response['products'] = products
+            response["message"] = "products retrieved successfully"
+
+        else:
+            #   UPDATE THE response
+            response['status_code'] = 409
+            response['products'] = "none"
+            response['message'] = "there are no products in the database"
 
     #   RETURN A JSON VERSION OF THE response
     return jsonify(response)
@@ -204,11 +258,17 @@ def view_product(product_id):
     if request.method == "GET":
         #   GET A PRODUCT FROM THE DATABASE
         product = get_one_product(product_id)
-
-        #   UPDATE THE response
-        response["status_code"] = 200
-        response["product"] = product
-        response["description"] = "Product retrieved successfully"
+        print(type(product))
+        if not_empty(product):
+            #   UPDATE THE response
+            response["status_code"] = 201
+            response["product"] = product
+            response["message"] = "product retrieved successfully"
+        else:
+            #   UPDATE THE response
+            response["status_code"] = 409
+            response["product"] = "none"
+            response["message"] = "product not found"
 
     #   RETURN A JSON VERSION OF THE response
     return jsonify(response)
@@ -237,7 +297,7 @@ def edit_product(product_id):
             update_product("name", updated_data["name"], product_id)
 
             #   UPDATE THE response
-            response['status_code'] = 200
+            response['status_code'] = 201
             response['message'] = "name update was successful"
 
         #   CHECK IF WE ARE UPDATING THE PRODUCT name
@@ -249,7 +309,7 @@ def edit_product(product_id):
             update_product("description", updated_data['description'], product_id)
 
             #   UPDATE THE response
-            response["status_code"] = 200
+            response["status_code"] = 201
             response['message'] = "description update was successful"
 
         #   CHECK IF WE ARE UPDATING THE PRODUCT name
@@ -261,7 +321,7 @@ def edit_product(product_id):
             update_product("price", updated_data['price'], product_id)
 
             #   UPDATE THE response
-            response["status_code"] = 200
+            response["status_code"] = 201
             response['message'] = "price update was successful"
 
         #   CHECK IF WE ARE UPDATING THE PRODUCT name
@@ -273,7 +333,7 @@ def edit_product(product_id):
             update_product("category", updated_data['category'], product_id)
 
             #   UPDATE THE response
-            response["status_code"] = 200
+            response["status_code"] = 201
             response['message'] = "category update was successful"
 
         #   CHECK IF WE ARE UPDATING THE PRODUCT name
@@ -285,7 +345,7 @@ def edit_product(product_id):
             update_product("review", updated_data['review'], product_id)
 
             #   UPDATE THE response
-            response["status_code"] = 200
+            response["status_code"] = 201
             response['message'] = "review update was successful"
 
     return response
@@ -300,10 +360,10 @@ def delete_product(product_id):
     response = {}
 
     #   CALL THE delete_product AND PASS IN THE product_id
-    delete_product(product_id)
+    remove_product(product_id)
 
     #   UPDATE THE response
-    response['status_code'] = 200
+    response['status_code'] = 201
     response['message'] = "product deleted successfully."
 
     return response

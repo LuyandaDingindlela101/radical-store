@@ -1,6 +1,6 @@
 import sqlite3
 
-database_name = "radical_store"
+database_name = "radical_store.db"
 
 
 #   FUNCTION WILL CREATE THE USER TABLE

@@ -22,6 +22,7 @@ class User:
         self.email_address = email_address
 
 
+#   FUNCTION WILL SEND AN EMAIL TO THE PROVIDED email_address
 def send_email(email_address, first_name):
     email_to_send = Message('Welcome to the Radical Store.', sender='notbrucewayne71@gmail.com',
                             recipients=[email_address])
@@ -32,14 +33,19 @@ def send_email(email_address, first_name):
     mail.send(email_to_send)
 
 
+#   FUNCTION WILL GET USERS FROM THE DATABASE AND CREATE USER OBJECTS
 def fetch_users():
-    new_data = []
+    users_array = []
+    #   GET USERS FROM THE DATABASE
     db_users = database.get_users()
 
+    #   LOOP THROUGH THE db_users
     for user in db_users:
-        new_data.append(User(user[0], user[1], user[2], user[3], user[4], user[5], user[6]))
+        #   CREATE A NEW User OBJECT
+        users_array.append(User(user[0], user[1], user[2], user[3], user[4], user[5], user[6]))
 
-    return new_data
+    #   RETURN THE users_array
+    return users_array
 
 
 #   LOGS IN THE USER AND RETURNS THE USER OBJECT. JWT ALSO USES THIS TO CREATE A JWT TOKEN
@@ -58,6 +64,7 @@ def identity(payload):
 app = Flask(__name__)
 app.debug = True
 
+#   CONFIGURATIONS FOR THE MAIL AND APP TO WORK
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USE_TLS'] = False
@@ -66,7 +73,7 @@ app.config['MAIL_SERVER'] = "smtp.gmail.com"
 app.config['MAIL_PASSWORD'] = "notBruceWayne"
 app.config['MAIL_USERNAME'] = "notbrucewayne71@gmail.com"
 app.config['JWT_EXPIRATION_DELTA'] = timedelta(seconds=86400)
-
+#   INITIALISE THE EXTENSIONS WITH RELEVANT PARAMETERS
 CORS(app)
 mail = Mail(app)
 utilities = Utilities()
@@ -74,9 +81,9 @@ database = Database("radical_store.db")
 jwt = JWT(app, authenticate, identity)
 
 #   CREATE THE USER TABLE IF IT DOESNT EXIST
-database.create_user_table()
+print(database.create_user_table())
 #   CREATE THE PRODUCT TABLE IF IT DOESNT EXIST
-database.create_product_table()
+print(database.create_product_table())
 #   GET ALL THE USERS IN THE DATABASE
 users = fetch_users()
 
@@ -96,7 +103,6 @@ def user_registration():
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
 
-    # WRAP IN TRY...CATCH
     try:
         #   MAKE SURE THE request.method IS A POST
         if request.method == "POST":
@@ -108,6 +114,7 @@ def user_registration():
             password = request.form['password']
             email_address = request.form['email_address']
 
+            #   MAKE SURE THAT ALL THE ENTRIES ARE VALID
             if utilities.not_empty(first_name) and utilities.not_empty(last_name) and utilities.not_empty(username) and \
                     utilities.not_empty(address) and utilities.not_empty(password) and utilities.not_empty(email_address) and \
                     utilities.is_email(email_address):
@@ -148,7 +155,6 @@ def login():
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
 
-    # WRAP IN TRY...CATCH
     #   MAKE SURE THE request.method IS A POST
     if request.method == "POST":
         try:
@@ -156,6 +162,7 @@ def login():
             username = request.form['username']
             password = request.form['password']
 
+            #   MAKE SURE THAT ALL THE ENTRIES ARE VALID
             if utilities.not_empty(username) and utilities.not_empty(password):
                 #   CALL THE get_user FUNCTION TO GET THE user
                 user = database.get_user(username, password)

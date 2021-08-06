@@ -5,6 +5,7 @@ class Utilities:
         if len(user_input) == 0:
             #   RETURN FALSE IF EMPTY
             raise ValueError
+            return False
 
         #   RETURN TRUE IF NOT EMPTY
         return True

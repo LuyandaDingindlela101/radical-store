@@ -107,12 +107,12 @@ def user_registration():
         #   MAKE SURE THE request.method IS A POST
         if request.method == "POST":
             #   GET THE FORM DATA TO BE SAVED
-            first_name = request.form['first_name']
-            last_name = request.form['last_name']
-            username = request.form['username']
-            address = request.form['address']
-            password = request.form['password']
-            email_address = request.form['email_address']
+            first_name = request.json['first_name']
+            last_name = request.json['last_name']
+            username = request.json['username']
+            address = request.json['address']
+            password = request.json['password']
+            email_address = request.json['email_address']
 
             #   MAKE SURE THAT ALL THE ENTRIES ARE VALID
             if utilities.not_empty(first_name) and utilities.not_empty(last_name) and utilities.not_empty(username) and \
@@ -159,8 +159,8 @@ def login():
     if request.method == "POST":
         try:
             #   GET THE FORM DATA TO BE SAVED
-            username = request.form['username']
-            password = request.form['password']
+            username = request.json['username']
+            password = request.json['password']
 
             #   MAKE SURE THAT ALL THE ENTRIES ARE VALID
             if utilities.not_empty(username) and utilities.not_empty(password):
@@ -201,11 +201,11 @@ def add_product():
     if request.method == "POST":
         try:
             #   GET THE FORM DATA TO BE SAVED
-            name = request.form['name']
-            description = request.form['description']
-            price = request.form['price']
-            category = request.form['category']
-            review = request.form['review']
+            name = request.json['name']
+            description = request.json['description']
+            price = request.json['price']
+            category = request.json['category']
+            review = request.json['review']
 
             #   CALL THE save_product FUNCTION TO SAVE THE PRODUCT TO THE DATABASE
             database.save_product(name, description, price, category, review)

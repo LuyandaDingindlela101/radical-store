@@ -145,8 +145,8 @@ def user_registration():
         response["message"] = "inputs are not valid"
         response["email_status"] = "email not sent"
     finally:
-        #   RETURN A JSON VERSION OF THE response
-        return jsonify(response)
+        #   RETURN THE response
+        return response
 
 
 #   ROUTE WILL BE USED TO LOG A REGISTERED USER IN, ROUTE ONLY ACCEPTS A POST METHOD
@@ -185,8 +185,8 @@ def login():
             response["message"] = "inputs are not valid"
             response["email_status"] = "email not sent"
         finally:
-            #   RETURN A JSON VERSION OF THE response
-            return jsonify(response)
+            #   RETURN THE response
+            return response
 
 
 #   ROUTE WILL BE USED TO ADD A NEW PRODUCT, ROUTE ONLY ACCEPTS A POST METHOD
@@ -218,8 +218,8 @@ def add_product():
             response["status_code"] = 201
             response['message'] = "inputs are not valid"
         finally:
-            #   RETURN A JSON VERSION OF THE response
-            return jsonify(response)
+            #   RETURN THE response
+            return response
 
 
 #   ROUTE WILL BE USED TO VIEW ALL PRODUCTS, ROUTE ONLY ACCEPTS A GET METHOD
@@ -245,8 +245,8 @@ def show_products():
             response['products'] = "none"
             response['message'] = "there are no products in the database"
 
-    #   RETURN A JSON VERSION OF THE response
-    return jsonify(response)
+    #   RETURN THE response
+    return response
 
 
 #   ROUTE WILL BE USED TO VIEW A SINGLE PRODUCT, ROUTE ONLY ACCEPTS A GET METHOD
@@ -271,8 +271,8 @@ def view_product(product_id):
             response["product"] = "none"
             response["message"] = "product not found"
 
-    #   RETURN A JSON VERSION OF THE response
-    return jsonify(response)
+    #   RETURN THE response
+    return response
 
 
 #   ROUTE WILL BE USED TO EDIT A PRODUCT, ROUTE ONLY ACCEPTS A PUT METHOD

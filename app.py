@@ -114,6 +114,8 @@ def user_registration():
             password = request.json['password']
             email_address = request.json['email_address']
 
+
+
             #   MAKE SURE THAT ALL THE ENTRIES ARE VALID
             if utilities.not_empty(first_name) and utilities.not_empty(last_name) and utilities.not_empty(username) and \
                     utilities.not_empty(address) and utilities.not_empty(password) and utilities.not_empty(email_address) and \
@@ -192,7 +194,7 @@ def login():
 #   ROUTE WILL BE USED TO ADD A NEW PRODUCT, ROUTE ONLY ACCEPTS A POST METHOD
 @app.route('/add-product/', methods=["POST"])
 #   AN AUTHORISATION TOKEN IS NEEDED TO ACCESS THIS ROUTE
-@jwt_required()
+# @jwt_required()
 def add_product():
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
@@ -278,7 +280,7 @@ def view_product(product_id):
 #   ROUTE WILL BE USED TO EDIT A PRODUCT, ROUTE ONLY ACCEPTS A PUT METHOD
 @app.route('/edit-product/<int:product_id>/', methods=["PUT"])
 #   AN AUTHORISATION TOKEN IS NEEDED TO ACCESS THIS ROUTE
-@jwt_required()
+# @jwt_required()
 def edit_product(product_id):
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
@@ -355,7 +357,7 @@ def edit_product(product_id):
 #   ROUTE WILL BE USED TO EDIT A PRODUCT, ROUTE ONLY ACCEPTS A PUT METHOD
 @app.route("/delete-product/<int:product_id>", methods=["GET"])
 #   AN AUTHORISATION TOKEN IS NEEDED TO ACCESS THIS ROUTE
-@jwt_required()
+# @jwt_required()
 def delete_product(product_id):
     #   CREATE AN EMPTY OBJECT THAT WILL HOLD THE response OF THE PROCESS
     response = {}
